@@ -581,9 +581,11 @@ DUMMY = "dummy"
 BRAINTREE = "braintree"
 RAZORPAY = "razorpay"
 STRIPE = "stripe"
+DOTPAY = "dotpay"
 
 CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway")
+    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway"),
+    DOTPAY: pgettext_lazy("Dotpay", "Dotpay gateway")
 }
 
 PAYMENT_GATEWAYS = {
@@ -643,6 +645,24 @@ PAYMENT_GATEWAYS = {
                 ),
             },
         },
+    },
+    DOTPAY: {
+        "module": "saleor.payment.gateways.dotpay",
+        "config": {
+            "auto_capture": True,
+            "template_path": "order/payment/dotpay.html",
+            "connection_params": {
+                "id": os.environ.get("DOTPAY_ID"),
+                "pin": os.environ.get("DOTPAY_PIN"),
+                "username": os.environ.get("DOTPAY_USERNAME"),
+                "password": os.environ.get("DOTPAY_PASSWORD"),
+                "type": os.environ.get("DOTPAY_TYPE", 0),
+                "ignore_last_chnl": os.environ.get("DOTPAY_IGNORE_LAST_CHNL", 1),
+                "allowed_ips": os.environ.get("DOTPAY_ALLOWED_IPS", ["195.150.9.37", ]),
+                "payment_url": "https://ssl.dotpay.pl/test_payment/",# if DEBUG else "https://ssl.dotpay.pl/t2/",
+                "seller_url": "https://ssl.dotpay.pl/test_seller/api/v1/",# if DEBUG else "https://ssl.dotpay.pl/s2/login/api/v1/"
+            }
+        }
     },
 }
 

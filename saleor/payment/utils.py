@@ -86,6 +86,7 @@ def create_payment_information(
         order_id=order_id,
         customer_ip_address=payment.customer_ip_address,
         customer_email=payment.billing_email,
+        payment_id=payment.pk
     )
 
 

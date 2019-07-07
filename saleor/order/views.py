@@ -118,6 +118,7 @@ def start_payment(request, order, gateway):
             data=request.POST or None,
             payment_information=payment_info,
             connection_params=connection_params,
+            request=request,
         )
         if form.is_valid():
             try:

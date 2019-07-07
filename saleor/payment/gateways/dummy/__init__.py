@@ -13,7 +13,7 @@ def get_client_token(**_):
     return str(uuid.uuid4())
 
 
-def create_form(data, payment_information, connection_params):
+def create_form(data, payment_information, connection_params, request):
     return DummyPaymentForm(data=data)
 
 

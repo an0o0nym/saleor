@@ -47,6 +47,7 @@ class PaymentData:
     order_id: Optional[int]
     customer_ip_address: str
     customer_email: str
+    payment_id: int
 
 
 @dataclass
