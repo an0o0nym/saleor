@@ -588,6 +588,10 @@ CHECKOUT_PAYMENT_GATEWAYS = {
     DOTPAY: pgettext_lazy("Dotpay", "Dotpay gateway")
 }
 
+PAYMENT_GATEWAYS_ALLOWED_IPS = {
+    DOTPAY: os.environ.get("DOTPAY_ALLOWED_IPS", ["195.150.9.37", '127.0.0.1', 'localhost']),
+}
+
 PAYMENT_GATEWAYS = {
     DUMMY: {
         "module": "saleor.payment.gateways.dummy",
@@ -649,7 +653,8 @@ PAYMENT_GATEWAYS = {
     DOTPAY: {
         "module": "saleor.payment.gateways.dotpay",
         "config": {
-            "auto_capture": True,
+            "auto_capture": False,
+            "manual_action_required": True,
             "template_path": "order/payment/dotpay.html",
             "connection_params": {
                 "id": os.environ.get("DOTPAY_ID"),
@@ -658,7 +663,6 @@ PAYMENT_GATEWAYS = {
                 "password": os.environ.get("DOTPAY_PASSWORD"),
                 "type": os.environ.get("DOTPAY_TYPE", 0),
                 "ignore_last_chnl": os.environ.get("DOTPAY_IGNORE_LAST_CHNL", 1),
-                "allowed_ips": os.environ.get("DOTPAY_ALLOWED_IPS", ["195.150.9.37", ]),
                 "payment_url": "https://ssl.dotpay.pl/test_payment/",# if DEBUG else "https://ssl.dotpay.pl/t2/",
                 "seller_url": "https://ssl.dotpay.pl/test_seller/api/v1/",# if DEBUG else "https://ssl.dotpay.pl/s2/login/api/v1/"
             }

@@ -22,6 +22,11 @@ urlpatterns = [
         name="payment-success",
     ),
     url(
+        r"^payment-callback/$",
+        views.payment_callback,
+        name="payment-callback",
+    ),
+    url(
         r"^%s/checkout-success/$" % (TOKEN_PATTERN,),
         views.checkout_success,
         name="checkout-success",

@@ -40,6 +40,26 @@ SUPPORTED_LANGUAGES = [
     LANGUAGE_RO,
 ]
 
+OPERATION_STATUS_NEW = 'new'
+OPERATION_STATUS_PROCESSING = 'processing'
+OPERATION_STATUS_COMPLETED = 'completed'
+OPERATION_STATUS_REJECTED = 'rejected'
+OPERATION_STATUS_REALIZATION_WAITING = 'processing_realization_waiting'
+OPERATION_STATUS_PROCESSING_REALIZATION = 'processing_realization'
+OPERATIONS_STATUS = [
+    OPERATION_STATUS_NEW,
+    OPERATION_STATUS_PROCESSING,
+    OPERATION_STATUS_COMPLETED,
+    OPERATION_STATUS_REJECTED,
+    OPERATION_STATUS_REALIZATION_WAITING,
+    OPERATION_STATUS_PROCESSING_REALIZATION,
+]
+
+OPERATION_TYPE_PAYMENT = 'payment'
+OPERATION_TYPES = [
+    OPERATION_TYPE_PAYMENT
+]
+
 ONLINE_SIG_FIELDS = (
     'api_version',
     'lang',
@@ -118,4 +138,36 @@ ONLINE_SIG_FIELDS = (
     'credit_card_threeds',
     'customer',
     'gp_token'
+)
+
+CALLBACK_SIG_FIELDS = (
+    'id',
+    'operation_number',
+    'operation_type',
+    'operation_status',
+    'operation_amount',
+    'operation_currency',
+    'operation_withdrawal_amount',
+    'operation_commission_amount',
+    'is_completed',
+    'operation_original_amount',
+    'operation_original_currency',
+    'operation_datetime',
+    'operation_related_number',
+    'control',
+    'description',
+    'email',
+    'p_info',
+    'p_email',
+    'credit_card_issuer_identification_number',
+    'credit_card_masked_number',
+    'credit_card_expiration_year',
+    'credit_card_expiration_month',
+    'credit_card_brand_codename',
+    'credit_card_brand_code',
+    'credit_card_unique_identifier',
+    'credit_card_id',
+    'channel',
+    'channel_country',
+    'geoip_country'
 )

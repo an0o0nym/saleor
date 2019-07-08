@@ -126,7 +126,7 @@ def process_payment(
 
 
 def create_form(
-    data: Dict, payment_information: PaymentData, connection_params: Dict, request
+    data: Dict, payment_information: PaymentData, connection_params: Dict
 ) -> StripePaymentModalForm:
     return StripePaymentModalForm(
         data=data,

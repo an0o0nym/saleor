@@ -2,10 +2,12 @@ from functools import wraps
 
 from django.conf import settings
 from django.db import transaction
+from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
+from . import events
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.utils.taxes import ZERO_MONEY, get_tax_rate_by_name, get_taxes_for_address
@@ -23,7 +25,6 @@ from ..product.utils import (
     increase_stock,
 )
 from ..product.utils.digital_products import get_default_digital_content_settings
-from . import events
 
 
 def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
@@ -360,3 +361,19 @@ def sum_order_totals(qs):
     zero = Money(0, currency=settings.DEFAULT_CURRENCY)
     taxed_zero = TaxedMoney(zero, zero)
     return sum([order.total for order in qs], taxed_zero)
+
+
+def gateway_check(func):
+    @wraps(func)
+    def decorator(request: HttpRequest, *args, **kwargs):
+        hosts = [
+            request.META['REMOTE_HOST'],
+            request.META['REMOTE_ADDR']
+        ]
+        kwargs['gateway'] = None
+        for gateway_name, allowed_ips in settings.PAYMENT_GATEWAYS_ALLOWED_IPS.items():
+            if any([host in allowed_ips for host in hosts]):
+                kwargs['gateway'] = gateway_name
+                break
+        return func(request, *args, **kwargs)
+    return decorator

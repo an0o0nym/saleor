@@ -66,7 +66,7 @@ def clean_razorpay_response(response: Dict):
     response["amount"] = Decimal(response["amount"]) / 100
 
 
-def create_form(data, payment_information, connection_params, request):
+def create_form(data, payment_information, connection_params):
     """Return the associated razorpay payment form."""
     return RazorPaymentForm(
         data=data,

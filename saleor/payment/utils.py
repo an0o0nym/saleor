@@ -389,11 +389,14 @@ def _gateway_postprocess(transaction, payment):
 
 @require_active_payment
 def gateway_process_payment(
-    payment: Payment, payment_token: str, **extras
+        payment: Payment,
+        payment_token: str,
+        operation_type: OperationType=OperationType.PROCESS_PAYMENT,
+        **extras
 ) -> Transaction:
     """Performs whole payment process on a gateway."""
     transaction = call_gateway(
-        operation_type=OperationType.PROCESS_PAYMENT,
+        operation_type=operation_type,
         payment=payment,
         payment_token=payment_token,
         amount=payment.total,

@@ -3,7 +3,7 @@ import logging
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus, TransactionKind, get_payment_gateway
+from ..payment import ChargeStatus, TransactionKind, get_payment_gateway, OperationType
 from ..payment.utils import (
     create_payment,
     create_payment_information,
@@ -22,7 +22,7 @@ from ..payment.utils import (
 from . import FulfillmentStatus
 from .forms import CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm
 from .models import Order
-from .utils import attach_order_to_user, check_order_status
+from .utils import attach_order_to_user, check_order_status, gateway_check
 
 logger = logging.getLogger(__name__)
 
@@ -117,8 +117,7 @@ def start_payment(request, order, gateway):
         form = payment_gateway.create_form(
             data=request.POST or None,
             payment_information=payment_info,
-            connection_params=connection_params,
-            request=request,
+            connection_params=connection_params
         )
         if form.is_valid():
             try:
@@ -130,6 +129,8 @@ def start_payment(request, order, gateway):
             else:
                 if order.is_fully_paid():
                     return redirect("order:payment-success", token=order.token)
+                if gateway_config.manual_action_required:
+                    return redirect(payment_gateway.get_manual_action_url(payment, connection_params))
                 return redirect(order.get_absolute_url())
 
     client_token = payment_gateway.get_client_token(config=gateway_config)
@@ -161,6 +162,37 @@ def payment_success(request, token):
     """
     url = reverse("order:checkout-success", kwargs={"token": token})
     return redirect(url)
+
+
+@csrf_exempt
+@gateway_check
+def payment_callback(request, gateway):
+    payment_gateway, gateway_config = get_payment_gateway(gateway)
+    connection_params = gateway_config.connection_params
+    code_positive, code_negative = payment_gateway.get_callback_codes()
+    content_positive, content_negative = payment_gateway.get_callback_contents()
+
+    form = payment_gateway.create_callback_form(
+        connection_params=connection_params,
+        request=request,
+        data=request.POST or None,
+    )
+
+    status_code = code_negative
+    content = content_negative
+    if not form.is_valid():
+        return HttpResponse(content, status=status_code)
+
+    try:
+        gateway_process_payment(form.get_payment(), form.get_payment_token(), OperationType.CAPTURE)
+    except Exception as e:
+        logger.error("Validation error for payment callback: %s" % e)
+
+    order = form.get_order()
+    if order and order.is_fully_paid():
+        status_code = code_positive
+        content = content_positive
+    return HttpResponse(content, status=status_code)
 
 
 def checkout_success(request, token):

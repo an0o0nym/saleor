@@ -1,18 +1,16 @@
 import base64
 import hashlib
+import urllib.parse as urlparse
 from typing import Dict
-from urllib import parse
 
 import requests
-from django.http.request import HttpRequest
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from django_countries import data as dj_countries_data
 
-from .consts import ONLINE_SIG_FIELDS
 from ...interface import PaymentData
+from ....core.utils import build_absolute_uri
 from ....order.models import Order
-from ....payment.models import Payment
 
 
 def encode_param(param):
@@ -38,9 +36,9 @@ def process_params(params, flatten=True):
     return new_params
 
 
-def compute_sig(params, pin):
+def compute_sig(params, pin, fields):
     params = process_params(params)
-    text = pin + ("".join(map(lambda field: str(params.get(field, '')), ONLINE_SIG_FIELDS)))
+    text = pin + ("".join(map(lambda field: str(params.get(field, '')), fields)))
     return hashlib.sha256(text.encode('utf8')).hexdigest()
 
 
@@ -55,13 +53,13 @@ def get_country_alt_code(country_code):
     return dj_countries_data.ALT_CODES[country_code][0]
 
 
-def gen_url(request: HttpRequest, payment_info: PaymentData = None, order: Order = None):
+def gen_url(payment_info: PaymentData = None, order: Order = None):
     if not order:
         order = Order.objects.get(id=payment_info.order_id)
-    return request.build_absolute_uri(reverse("order:payment-success", kwargs={"token": order.token}))
+    return build_absolute_uri(reverse("order:payment-success", kwargs={"token": order.token}))
 
 
-def gen_data(payment_info: PaymentData, connection_params: Dict, request: HttpRequest) -> Dict:
+def gen_data(payment_info: PaymentData, connection_params: Dict) -> Dict:
     order = Order.objects.get(id=payment_info.order_id)
     payer_data = payment_info.billing
     description = _("Order id: %s") % payment_info.order_id
@@ -70,11 +68,11 @@ def gen_data(payment_info: PaymentData, connection_params: Dict, request: HttpRe
         amount=str(payment_info.amount),
         currency=payment_info.currency,
         description=description,
-        control=str(payment_info.order_id),
+        control=str(payment_info.payment_id),
         language=order.language_code,
         ignore_last_payment_channel=str(connection_params['ignore_last_chnl']),
         redirection_type=str(connection_params['type']),
-        url=gen_url(request, order=order),
+        url=gen_url(order=order),
         urlc=None,
         payer=dict(
             first_name=payer_data.first_name,
@@ -93,9 +91,9 @@ def gen_data(payment_info: PaymentData, connection_params: Dict, request: HttpRe
     return process_params(data, flatten=False)
 
 
-def gen_pid(payment_info: PaymentData, connection_params: Dict, request: HttpRequest) -> str:
-    url = parse.urljoin(connection_params['seller_url'], 'accounts/%s/payment_links/')
-    data = gen_data(payment_info, connection_params, request)
+def auth_payment(payment_info: PaymentData, connection_params: Dict) -> Dict:
+    url = urlparse.urljoin(connection_params['seller_url'], 'accounts/%s/payment_links/')
+    data = gen_data(payment_info, connection_params)
     headers = {
         'Authorization': 'Basic %s' % gen_credentials(connection_params),
         'Content-type': 'application/json',
@@ -103,10 +101,4 @@ def gen_pid(payment_info: PaymentData, connection_params: Dict, request: HttpReq
     }
 
     resp = requests.post(url % connection_params['id'], json=data, headers=headers)
-    token = resp.json()['token']
-
-    payment = Payment.objects.get(pk=payment_info.payment_id)
-    payment.token = token
-    payment.save(update_fields=['token'])
-
-    return token
+    return resp.json()['token']
