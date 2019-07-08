@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 
 @dataclass
@@ -61,4 +61,5 @@ class GatewayConfig:
     # Each gateway has different connection data so we are not able to create
     # a unified structure
     connection_params: Dict[str, Any]
+    disallowed_actions: Optional[List[str]]
     manual_action_required: Optional[bool] = False

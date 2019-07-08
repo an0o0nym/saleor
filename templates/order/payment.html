@@ -39,7 +39,7 @@
     <div class="col-lg-10 m-auto checkout__payment">
       {% if order.user == user or not order.is_fully_paid %}
         {% if not order.is_fully_paid and order.billing_address %}
-          {% if waiting_payment %}
+          {% if waiting_payment and  waiting_payment_form %}
             <h1>
               {% trans "Payment pending" context "Payment details title" %}
             </h1>

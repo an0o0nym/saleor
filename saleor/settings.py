@@ -655,6 +655,7 @@ PAYMENT_GATEWAYS = {
         "config": {
             "auto_capture": False,
             "manual_action_required": True,
+            "disallowed_actions": ["void", "refund"],
             "template_path": "order/payment/dotpay.html",
             "connection_params": {
                 "id": os.environ.get("DOTPAY_ID"),

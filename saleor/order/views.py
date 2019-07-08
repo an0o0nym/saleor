@@ -64,13 +64,15 @@ def payment(request, token):
         charge_status=ChargeStatus.NOT_CHARGED,
         transactions__kind=TransactionKind.AUTH,
     ).first()
-    if not waiting_payment:
-        waiting_payment_form = None
-    else:
-        form_data = None
-        waiting_payment_form = PaymentDeleteForm(
-            None, order=order, initial={"payment_id": waiting_payment.id}
-        )
+    waiting_payment_form = None
+    if waiting_payment:
+        payment_gateway, gateway_config = get_payment_gateway(waiting_payment.gateway)
+        if OperationType.VOID.value not in gateway_config.disallowed_actions:
+            form_data = None
+            waiting_payment_form = PaymentDeleteForm(
+                None, order=order, initial={"payment_id": waiting_payment.id}
+            )
+
     if order.is_fully_paid() or not order.billing_address:
         form_data = None
     payment_form = None
