@@ -112,6 +112,7 @@ prices==1.0.0
 promise==2.3
 protobuf==3.11.3
 psycopg2-binary==2.8.4
+ptvsd == 4.3.2
 purl==1.5
 py==1.8.1
 pyasn1==0.4.8

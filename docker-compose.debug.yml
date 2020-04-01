@@ -1,0 +1,11 @@
+version: '2'
+
+services:
+  web:
+    expose:
+      - "5678"
+    ports:
+      - 8000:8000
+      - 5678:5678
+    environment: 
+      - VSCODE_DEBUGGER=True
